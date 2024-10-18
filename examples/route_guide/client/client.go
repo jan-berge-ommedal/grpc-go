@@ -24,6 +24,7 @@ package main
 
 import (
 	"context"
+	_tls "crypto/tls"
 	"flag"
 	"io"
 	"log"
@@ -33,7 +34,6 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
-	"google.golang.org/grpc/examples/data"
 	pb "google.golang.org/grpc/examples/route_guide/routeguide"
 )
 
@@ -156,13 +156,18 @@ func main() {
 	flag.Parse()
 	var opts []grpc.DialOption
 	if *tls {
-		if *caFile == "" {
-			*caFile = data.Path("x509/ca_cert.pem")
-		}
-		creds, err := credentials.NewClientTLSFromFile(*caFile, *serverHostOverride)
-		if err != nil {
-			log.Fatalf("Failed to create TLS credentials: %v", err)
-		}
+		//if *caFile == "" {
+		//	*caFile = data.Path("x509/ca_cert.pem")
+		//}
+		//creds, err := credentials.NewClientTLSFromFile(*caFile, *serverHostOverride)
+		//if err != nil {
+		//	log.Fatalf("Failed to create TLS credentials: %v", err)
+		//}
+
+		creds := credentials.NewTLS(&_tls.Config{
+			InsecureSkipVerify: true,
+		})
+
 		opts = append(opts, grpc.WithTransportCredentials(creds))
 	} else {
 		opts = append(opts, grpc.WithTransportCredentials(insecure.NewCredentials()))
