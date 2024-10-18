@@ -27,6 +27,8 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 	"io"
 	"log"
 	"math"
@@ -61,6 +63,9 @@ type routeGuideServer struct {
 
 // GetFeature returns the feature at the given point.
 func (s *routeGuideServer) GetFeature(_ context.Context, point *pb.Point) (*pb.Feature, error) {
+	fmt.Println("received request, responding with error")
+	return nil, status.Error(codes.InvalidArgument, "This is invalid")
+
 	for _, feature := range s.savedFeatures {
 		if proto.Equal(feature.Location, point) {
 			return feature, nil
@@ -216,8 +221,9 @@ func newServer() *routeGuideServer {
 }
 
 func main() {
+	fmt.Println("starting")
 	flag.Parse()
-	lis, err := net.Listen("tcp", fmt.Sprintf("localhost:%d", *port))
+	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", *port))
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}
@@ -237,6 +243,7 @@ func main() {
 	}
 	grpcServer := grpc.NewServer(opts...)
 	pb.RegisterRouteGuideServer(grpcServer, newServer())
+	fmt.Printf("serving port %d\n", *port)
 	grpcServer.Serve(lis)
 }
 
